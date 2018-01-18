@@ -1,0 +1,39 @@
+package {{.Name}}
+
+import (
+	"strings"
+
+    // Esta importación se debe modificar a los paquetes del proyecto
+	"gitlab.com/Ecatch/MAJOSystem/configuration"
+	"gitlab.com/Ecatch/MAJOSystem/logger"
+)
+
+var s Storage
+
+func init() {
+	setStorage()
+}
+
+type Storage interface {
+	Create(m *Model) error
+	Update(ID int64, m *Model) error
+	Delete(ID int64) error
+	GetByID(ID int64) (*Model, error)
+	GetAll() (Models, error)
+}
+
+func setStorage() {
+	c := configuration.FromFile()
+	switch strings.ToLower(c.DBConnection) {
+	case "sqlserver":
+		s = sqlserver{}
+	case "postgres":
+		fallthrough
+	case "mysql":
+		fallthrough
+	case "oracle":
+		fallthrough
+	default:
+		logger.Error.Printf("este motor de bd no está configurado aún: %s", c.DBConnection)
+	}
+}

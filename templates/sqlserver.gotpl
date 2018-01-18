@@ -1,0 +1,160 @@
+package {{.Name}}
+
+import (
+	"database/sql"
+
+	"github.com/lib/pq"
+	"gitlab.com/Ecatch/MAJOSystem/logger"
+	"gitlab.com/Ecatch/MAJOSystem/db"
+)
+
+type sqlserver struct{}
+
+const (
+	sqlInsert  = `INSERT INTO {{.Table}} ({{range .Fields}}{{.}},{{end}}) VALUES ({{range .Fields}}@{{.}},{{end}})`
+	sqlUpdate  = `UPDATE {{.Table}} SET {{range .Fields}}{{.}} = @{{.}},{{end}} updated_at = getdate() WHERE id = @id`
+	sqlDelete  = `DELETE FROM {{.Table}} WHERE id = @id`
+	sqlGetByID = `SELECT id, {{range .Fields}}{{.}},{{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK) WHERE id = @id`
+	sqlGetAll  = `SELECT id, {{range .Fields}}{{.}},{{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK)`
+)
+
+func (s sqlserver) Create(m *Model) error {
+	conn := db.GetConnection()
+
+	stmt, err := conn.Prepare(sqlInsert)
+	if err != nil {
+		logger.Error.Printf("preparando la consulta en Create {{.Name}}: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	ID, err := db.ExecGettingID(
+		stmt,
+		{{range .Fields}}
+		sql.Named("{{.}}", m.{{ucc .}}),
+		{{end}}
+	)
+	if err != nil {
+		logger.Error.Printf("ejecutando la consulta en Create {{.Name}}: %v", err)
+		return err
+	}
+	m.ID = ID
+
+	return nil
+}
+
+func (s sqlserver) Update(ID int64, m *Model) error {
+	conn := db.GetConnection()
+
+	stmt, err := conn.Prepare(sqlUpdate)
+	if err != nil {
+		logger.Error.Printf("preparando la consulta en Update {{.Name}}: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	err = db.ExecAffectingOneRow(
+		stmt,
+		{{range .Fields}}
+        sql.Named("{{.}}", m.{{ucc .}}),
+        {{end}}
+		sql.Named("id", ID),
+	)
+	if err != nil {
+		logger.Error.Printf("ejecutando la consulta en Update {{.Name}}: %v", err)
+		return err
+	}
+	m.ID = ID
+
+	return nil
+}
+
+func (s sqlserver) Delete(ID int64) error {
+	conn := db.GetConnection()
+
+	stmt, err := conn.Prepare(sqlDelete)
+	if err != nil {
+		logger.Error.Printf("preparando la consulta en Delete {{.Name}}: %v", err)
+		return err
+	}
+	defer stmt.Close()
+
+	err = db.ExecAffectingOneRow(
+		stmt,
+		sql.Named("id", ID),
+	)
+	if err != nil {
+		logger.Error.Printf("ejecutando la consulta en Delete {{.Name}}: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (s sqlserver) GetByID(ID int64) (*Model, error) {
+	conn := db.GetConnection()
+
+	stmt, err := conn.Prepare(sqlGetByID)
+	if err != nil {
+		logger.Error.Printf("preparando la consulta en GetByID {{.Name}}: %v", err)
+		return nil, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(sql.Named("id", ID))
+	return s.scanRow(row)
+}
+
+func (s sqlserver) GetAll() (Models, error) {
+	conn := db.GetConnection()
+	ms := make(Models, 0)
+
+	stmt, err := conn.Prepare(sqlGetAll)
+	if err != nil {
+		logger.Error.Printf("preparando la consulta en GetAll {{.Name}}: %v", err)
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		logger.Error.Printf("ejecutando la consulta en GetAll {{.Name}}: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		m, err := s.scanRow(rows)
+		if err != nil {
+			logger.Error.Printf("escaneando el registro en {{.Name}}: %v", err)
+			return ms, err
+		}
+
+		ms = append(ms, *m)
+	}
+
+	return ms, nil
+}
+
+func (s sqlserver) scanRow(rs db.RowScanner) (*Model, error) {
+	m := &Model{}
+	cn := pq.NullTime{}
+	un := pq.NullTime{}
+
+	err := rs.Scan(
+		&m.ID,
+		{{range .Fields}}
+        &m.{{ucc .}},
+        {{end}}
+		&cn,
+		&un,
+	)
+	if err != nil {
+		logger.Error.Printf("escaneando el modelo {{.Name}}: %v", err)
+		return nil, err
+	}
+
+	m.CreatedAt = cn.Time
+	m.UpdatedAt = un.Time
+	return m, nil
+}

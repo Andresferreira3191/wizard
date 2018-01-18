@@ -1,0 +1,133 @@
+package {{.Name}}
+
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/labstack/echo"
+
+	// Esta importación se debe modificar a los paquetes del proyecto
+	"gitlab.com/Ecatch/MAJOSystem/logger"
+	"gitlab.com/Ecatch/MAJOSystem/response"
+)
+
+func Create(c echo.Context) error {
+	rm := response.Model{}
+	m := Model{}
+
+	err := c.Bind(&m)
+	if err != nil {
+		errStr := fmt.Sprintf("estructura no válida: %v", err)
+		logger.Error.Print(errStr)
+		rm.Set(errStr, true, nil)
+		return c.JSON(http.StatusOK, rm)
+	}
+
+	err = m.Create()
+	if err != nil {
+		errStr := fmt.Sprintf("no se pudo insertar el role: %v", err)
+		logger.Error.Print(errStr)
+		rm.Set(errStr, true, nil)
+		return c.JSON(http.StatusOK, rm)
+	}
+	rm.Set("creado exitosamente", false, m)
+
+	return c.JSON(http.StatusOK, rm)
+}
+
+func Update(c echo.Context) error {
+    rm := response.Model{}
+    m := Model{}
+
+    ID, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        errStr := "el id debe ser un número entero positivo"
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    err := c.Bind(&m)
+    if err != nil {
+        errStr := fmt.Sprintf("estructura no válida: %v", err)
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+    m.ID = ID
+
+    err = m.Update(m.ID)
+    if err != nil {
+        errStr := fmt.Sprintf("no se pudo actualizar el modelo: %v", err)
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    rm.Set("actualizado correctamente", false, m)
+    return c.JSON(http.StatusOK, rm)
+}
+
+func Delete(c echo.Context) error {
+    rm := response.Model{}
+    m := Model{}
+
+    ID, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        errStr := "el id debe ser un número entero positivo"
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    err = m.Delete(ID)
+    if err != nil {
+        errStr := fmt.Sprintf("no se eliminó el registro: %v", err)
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    rm.Set("registro eliminado", false, nil)
+    return c.JSON(http.StatusOK, rm)
+}
+
+func GetByID(c echo.Context) error {
+    rm := response.Model{}
+    m := Model{}
+
+    ID, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        errStr := "el id debe ser un número entero positivo"
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    r, err := m.GetByID(ID)
+    if err != nil {
+        errStr := fmt.Sprintf("no se pudo consultar el registro: %v", err)
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    rm.Set("registro consultado", false, r)
+    return c.JSON(http.StatusOK, rm)
+}
+
+func GetAll(c echo.Context) error {
+    rm := response.Model{}
+    m := Model{}
+
+    rs, err := m.GetAll()
+    if err != nil {
+        errStr := fmt.Sprintf("no se pudo consultar el registro: %v", err)
+        logger.Error.Print(errStr)
+        rm.Set(errStr, true, nil)
+        return c.JSON(http.StatusOK, rm)
+    }
+
+    rm.Set("consulta ejecutada", false, rs)
+    return c.JSON(http.StatusOK, rm)
+}
