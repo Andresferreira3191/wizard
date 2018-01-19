@@ -71,9 +71,14 @@ func main() {
 
 	m := Model{n, t, h.Fields}
 
+	generateModel(m)
 	generateStorage(m)
 	generateSqlServer(m)
 	generateHandler(m)
+}
+
+func generateModel(m Model) {
+	generateTemplate("model.go", "model.gotpl", m)
 }
 
 func generateStorage(m Model) {

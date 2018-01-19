@@ -9,6 +9,6 @@ insert_final_newline = true
 charset = utf-8
 
 # 8 space indentation with tab
-[*.go]
+[*.{go,gotpl}]
 indent_style = tab
 indent_size = 8

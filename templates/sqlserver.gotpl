@@ -11,11 +11,11 @@ import (
 type sqlserver struct{}
 
 const (
-	sqlInsert  = `INSERT INTO {{.Table}} ({{range .Fields}}{{.}},{{end}}) VALUES ({{range .Fields}}@{{.}},{{end}})`
-	sqlUpdate  = `UPDATE {{.Table}} SET {{range .Fields}}{{.}} = @{{.}},{{end}} updated_at = getdate() WHERE id = @id`
+	sqlInsert  = `INSERT INTO {{.Table}} ({{range .Fields}}{{.}}, {{end}}) VALUES ({{range .Fields}}@{{.}}, {{end}})`
+	sqlUpdate  = `UPDATE {{.Table}} SET {{range .Fields}}{{.}} = @{{.}}, {{end}} updated_at = getdate() WHERE id = @id`
 	sqlDelete  = `DELETE FROM {{.Table}} WHERE id = @id`
-	sqlGetByID = `SELECT id, {{range .Fields}}{{.}},{{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK) WHERE id = @id`
-	sqlGetAll  = `SELECT id, {{range .Fields}}{{.}},{{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK)`
+	sqlGetByID = `SELECT id, {{range .Fields}}{{.}}, {{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK) WHERE id = @id`
+	sqlGetAll  = `SELECT id, {{range .Fields}}{{.}}, {{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK)`
 )
 
 func (s sqlserver) Create(m *Model) error {
