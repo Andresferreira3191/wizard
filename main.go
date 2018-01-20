@@ -8,6 +8,8 @@ import (
 	"strings"
 	"text/template"
 
+	"path/filepath"
+
 	"github.com/stoewer/go-strcase"
 )
 
@@ -73,38 +75,41 @@ func main() {
 
 	m := Model{n, t, h.Fields}
 
+	fmt.Printf("el valor de d es: %s\n", d)
+
 	createDir(d)
-	generateModel(m)
-	generateStorage(m)
-	generateSqlServer(m)
-	generateHandler(m)
+	generateModel(m, d)
+	generateStorage(m, d)
+	generateSqlServer(m, d)
+	generateHandler(m, d)
 }
 
 func createDir(d string) {
 	_, err := os.Stat(d)
 	if os.IsNotExist(err) {
+		log.Printf("no existe la carpeta %s. Creandola...", d)
 		os.Mkdir(d, os.ModePerm)
 	}
 }
 
-func generateModel(m Model) {
-	generateTemplate("model.go", "model.gotpl", m)
+func generateModel(m Model, d string) {
+	generateTemplate(filepath.Join(d, "model.go"), "model.gotpl", m)
 }
 
-func generateStorage(m Model) {
-	generateTemplate("storage.go", "storage.gotpl", m)
+func generateStorage(m Model, d string) {
+	generateTemplate(filepath.Join(d, "storage.go"), "storage.gotpl", m)
 }
 
-func generateSqlServer(m Model) {
-	generateTemplate("sqlserver.go", "sqlserver.gotpl", m)
+func generateSqlServer(m Model, d string) {
+	generateTemplate(filepath.Join(d, "sqlserver.go"), "sqlserver.gotpl", m)
 }
 
-func generateHandler(m Model) {
-	generateTemplate("handler.go", "handler.gotpl", m)
+func generateHandler(m Model, d string) {
+	generateTemplate(filepath.Join(d, "handler.go"), "handler.gotpl", m)
 }
 
 func generateTemplate(dest, source string, m Model) {
-	f, err := os.OpenFile("dist/"+dest, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
+	f, err := os.OpenFile(dest, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 	if err != nil {
 		log.Fatalf("no se pudo crear el archivo: %v", err)
 	}
