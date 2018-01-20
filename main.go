@@ -49,10 +49,12 @@ func main() {
 		n string
 		t string
 		h Helper
+		d string
 	)
 	flag.StringVar(&n, "model", "", "nombre del modelo (ej: role)")
 	flag.StringVar(&t, "table", "", "nombre de la tabla (ej: roles)")
 	flag.Var(&h, "fields", "nombre de los campos de la tabla separados por coma sin espacios (ej: name,phone,address,age)")
+	flag.StringVar(&d, "dest", "dist", "nombre del directorio destino (ej: roles)")
 	flag.Parse()
 
 	if n == "" {
@@ -71,10 +73,18 @@ func main() {
 
 	m := Model{n, t, h.Fields}
 
+	createDir(d)
 	generateModel(m)
 	generateStorage(m)
 	generateSqlServer(m)
 	generateHandler(m)
+}
+
+func createDir(d string) {
+	_, err := os.Stat(d)
+	if os.IsNotExist(err) {
+		os.Mkdir(d, os.ModePerm)
+	}
 }
 
 func generateModel(m Model) {
