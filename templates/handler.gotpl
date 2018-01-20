@@ -39,7 +39,7 @@ func Update(c echo.Context) error {
     rm := response.Model{}
     m := Model{}
 
-    ID, err := strconv.Atoi(c.Param("id"))
+    ID, err := strconv.ParseInt(c.Param("id"), 10, 64)
     if err != nil {
         errStr := "el id debe ser un número entero positivo"
         logger.Error.Print(errStr)
@@ -47,7 +47,7 @@ func Update(c echo.Context) error {
         return c.JSON(http.StatusOK, rm)
     }
 
-    err := c.Bind(&m)
+    err = c.Bind(&m)
     if err != nil {
         errStr := fmt.Sprintf("estructura no válida: %v", err)
         logger.Error.Print(errStr)
@@ -72,7 +72,7 @@ func Delete(c echo.Context) error {
     rm := response.Model{}
     m := Model{}
 
-    ID, err := strconv.Atoi(c.Param("id"))
+    ID, err := strconv.ParseInt(c.Param("id"), 10, 64)
     if err != nil {
         errStr := "el id debe ser un número entero positivo"
         logger.Error.Print(errStr)
@@ -96,7 +96,7 @@ func GetByID(c echo.Context) error {
     rm := response.Model{}
     m := Model{}
 
-    ID, err := strconv.Atoi(c.Param("id"))
+    ID, err := strconv.ParseInt(c.Param("id"), 10, 64)
     if err != nil {
         errStr := "el id debe ser un número entero positivo"
         logger.Error.Print(errStr)
