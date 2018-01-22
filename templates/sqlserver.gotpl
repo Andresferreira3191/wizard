@@ -11,11 +11,11 @@ import (
 type sqlserver struct{}
 
 const (
-	sqlInsert  = `INSERT INTO {{.Table}} ({{range .Fields}}{{.}}, {{end}}) VALUES ({{range .Fields}}@{{.}}, {{end}})`
-	sqlUpdate  = `UPDATE {{.Table}} SET {{range .Fields}}{{.}} = @{{.}}, {{end}} updated_at = getdate() WHERE id = @id`
+	sqlInsert  = `INSERT INTO {{.Table}} ({{range .Fields}}{{.Name}}, {{end}}) VALUES ({{range .Fields}}@{{.Name}}, {{end}})`
+	sqlUpdate  = `UPDATE {{.Table}} SET {{range .Fields}}{{.Name}} = @{{.Name}}, {{end}} updated_at = getdate() WHERE id = @id`
 	sqlDelete  = `DELETE FROM {{.Table}} WHERE id = @id`
-	sqlGetByID = `SELECT id, {{range .Fields}}{{.}}, {{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK) WHERE id = @id`
-	sqlGetAll  = `SELECT id, {{range .Fields}}{{.}}, {{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK)`
+	sqlGetByID = `SELECT id, {{range .Fields}}{{.Name}}, {{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK) WHERE id = @id`
+	sqlGetAll  = `SELECT id, {{range .Fields}}{{.Name}}, {{end}} created_at, updated_at FROM {{.Table}} WITH (NOLOCK)`
 )
 
 func (s sqlserver) Create(m *Model) error {
@@ -31,7 +31,7 @@ func (s sqlserver) Create(m *Model) error {
 	ID, err := db.ExecGettingID(
 		stmt,
 		{{range .Fields}}
-		sql.Named("{{.}}", m.{{ucc .}}),
+		sql.Named("{{.Name}}", m.{{ucc .Name}}),
 		{{end}}
 	)
 	if err != nil {
@@ -56,7 +56,7 @@ func (s sqlserver) Update(ID int64, m *Model) error {
 	err = db.ExecAffectingOneRow(
 		stmt,
 		{{range .Fields}}
-        sql.Named("{{.}}", m.{{ucc .}}),
+        sql.Named("{{.Name}}", m.{{ucc .Name}}),
         {{end}}
 		sql.Named("id", ID),
 	)
@@ -144,7 +144,7 @@ func (s sqlserver) scanRow(rs db.RowScanner) (*Model, error) {
 	err := rs.Scan(
 		&m.ID,
 		{{range .Fields}}
-        &m.{{ucc .}},
+        &m.{{ucc .Name}},
         {{end}}
 		&cn,
 		&un,

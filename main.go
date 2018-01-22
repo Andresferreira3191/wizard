@@ -27,11 +27,16 @@ func init() {
 type Model struct {
 	Name   string
 	Table  string
-	Fields []string
+	Fields []Field
+}
+
+type Field struct {
+	Name string
+	Type string
 }
 
 type Helper struct {
-	Fields []string
+	Fields []Field
 }
 
 func (h *Helper) String() string {
@@ -41,7 +46,9 @@ func (h *Helper) String() string {
 func (h *Helper) Set(value string) error {
 	fields := strings.Split(value, ",")
 	for _, v := range fields {
-		h.Fields = append(h.Fields, v)
+		field := strings.Split(v, ":")
+		f := Field{field[0], field[1]}
+		h.Fields = append(h.Fields, f)
 	}
 	return nil
 }
@@ -55,7 +62,7 @@ func main() {
 	)
 	flag.StringVar(&n, "model", "", "nombre del modelo (ej: role)")
 	flag.StringVar(&t, "table", "", "nombre de la tabla (ej: roles)")
-	flag.Var(&h, "fields", "nombre de los campos de la tabla separados por coma sin espacios (ej: name,phone,address,age)")
+	flag.Var(&h, "fields", "nombre de los campos de la tabla y su tipo, separados por coma sin espacios (ej: name:string,phone:string,address:string,age:int)")
 	flag.StringVar(&d, "dest", "dist", "nombre del directorio destino (ej: roles)")
 	flag.Parse()
 
